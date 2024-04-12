@@ -19,7 +19,7 @@ export default function Home() {
             
           </Scene>
         </div>
-        <div className="absolute top-0 left-0 p-24 bg-gradient-to-r from-r from-blue-500 min-h-24 rounded-lg">
+        <div className="absolute top-0 left-0 p-24 lg:bg-gradient-to-r lg:from-r lg:from-blue-500 min-h-24 rounded-lg">
           <h1 className="text-3xl">Gabriel L. Maljkovich</h1>
           <h1 className="text-slate-300 font-bold text-xl">Full-Stack Developer</h1>
           <p className="text-slate-300 font-bold">Data Engineer</p>
