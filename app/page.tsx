@@ -8,7 +8,7 @@ export default function Home() {
         <p className="fixed left-0 top-0 flex w-full justify-center from-zinc-200 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto  lg:rounded-xl lg:p-4">
           <span className="font-mono font-bold">glmaljkovich</span>
         </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
+        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
           Portfolio
 
         </div>
