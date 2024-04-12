@@ -4,6 +4,7 @@ import { Fisheye, OrbitControls, CameraControls, PerspectiveCamera, Environment 
 import { Cubes, Camera, Light1, Light2 } from '@/app/components/Cubes'
 import { Loader } from '@react-three/drei'
 
+
 export default function Scene() {
     return (
         <>
