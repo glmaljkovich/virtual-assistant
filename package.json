@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pixiv/three-vrm": "^2.1.1",
     "@react-spring/three": "^9.7.3",
     "@react-three/drei": "^9.105.3",
     "@react-three/fiber": "^8.16.1",
     "@react-three/postprocessing": "^2.16.2",
     "@types/three": "^0.163.0",
+    "flowbite-react": "^0.8.0",
+    "leva": "^0.9.35",
+    "maath": "^0.10.7",
     "next": "14.2.0",
     "react": "^18",
     "react-dom": "^18",
