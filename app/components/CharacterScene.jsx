@@ -14,7 +14,7 @@ export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
         if (props.lookAt) {
             camera.current.add(props.lookAt.current)
         }
-    }, [])
+    }, [props.lookAt])
 
     return (
         <PerspectiveCamera

@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { Suspense, useEffect, useState, useRef } from "react";
+import { lerp } from "three/src/math/MathUtils.js";
 
 export const Character = ({vrm, setVrm, lookAt}) => {
     const modelPath = '/Pocho.vrm'
@@ -68,33 +69,49 @@ export const Character = ({vrm, setVrm, lookAt}) => {
             loadFBX(model)
         })
     }, [scene, setVrm])
-    // head animations
+    // talking animation
     useEffect(() => {
         const changeMouth = () => {
-            const expressions = ['aa', 'ee', 'ih', 'oh', 'ou']
-            const getRandom = (items) => {
-                return items[Math.floor(Math.random()*items.length)];
+            const getNextExpression = (expr) => {
+                const nextExpressions = {
+                    'aa': 'ou',
+                    'ee': 'ih',
+                    'ih': 'oh',
+                    'oh': 'ee',
+                    'ou': 'aa'
+                }
+                return nextExpressions[expr]
             }
-            const expr = getRandom(expressions)
+            const expr = getNextExpression(mouthExpr)
             console.log(expr)
             setMouthExpr(expr)
         }
-        setTimeout(changeMouth, 1000)
+        setTimeout(changeMouth, 600)
     }, [mouthExpr, setMouthExpr])
     // animate
     useFrame(({pointer, clock}, delta) => {
         const x = (pointer.x * viewport.width) / 2
         const y = (pointer.y * viewport.height) / 2
-        const rotX = (pointer.x * viewport.width) / 8
+        const rotX = (pointer.x * viewport.width) / 9
 
         if (vrm) {
             // follow cursor
             lookAt.current.position.set(x, y, 0)
             vrm.lookAt.target = lookAt.current
 
-            // talk
             const s = Math.sin( Math.PI * clock.elapsedTime );
-            vrm.expressionManager.setValue(mouthExpr, 0.5 * s)
+            
+            // talk
+            if (!expressions.enableMouthControl) {
+                vrm.expressionManager.setValue(mouthExpr, lerp(0, 0.6, s))
+                // clear other expressions
+                const expressions = ['aa', 'ee', 'ih', 'oh', 'ou']
+                for (const expr of expressions) {
+                    if (expr !== mouthExpr) {
+                        vrm.expressionManager.setValue(expr, lerp(0, 0.15, s))
+                    }
+                }
+            }
 
             // rotation
             bounding?.current.rotation.set(0, rotX, 0)
