@@ -8,7 +8,7 @@ import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { Suspense, useEffect, useState, useRef } from "react";
 import { lerp } from "three/src/math/MathUtils.js";
 
-export const Character = ({vrm, setVrm, lookAt}) => {
+export const Character = ({vrm, setVrm, lookAt, text}) => {
     const modelPath = '/Pocho.vrm'
     const {scene, viewport} = useThree()
     const [mixer, setMixer] = useState()
@@ -35,6 +35,16 @@ export const Character = ({vrm, setVrm, lookAt}) => {
         const mixerio = new THREE.AnimationMixer(vrm.scene)
         setMixer(mixerio)
     }
+    // speak
+    useEffect(() => {
+        if(text !== "") {
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = window.speechSynthesis.getVoices()[4]
+            console.log(window.speechSynthesis.getVoices())
+            speechSynthesis.speak(utterance);
+        }
+    }, [text])
+
     // load animation
     useEffect(() => {
         const loadAnimation = async () => {

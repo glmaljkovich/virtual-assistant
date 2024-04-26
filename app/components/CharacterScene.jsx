@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState, useRef } from "react";
 import { Object3D } from "three";
 
 import { Character } from "@/app/components/vrm/Character"
+import { div } from "three/examples/jsm/nodes/Nodes.js";
 
 export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
     const camera = useRef()
@@ -32,17 +33,33 @@ export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
 export default function CharacterScene() {
     const [vrm, setVrm] = useState()
     const lookAt = useRef()
+    const [text, setText] = useState("")
+    const [fullText, setFullText] = useState("")
     return (
+        <div className="h-full w-full">
         <Suspense fallback={null}>
             <Canvas flat className="canvi">
                 <Camera1 lookAt={lookAt}/>
                 <spotLight position={[0, 2, -1]} intensity={0.4} />
                 <ambientLight intensity={0.65} />
                 <Stars />
-                <Character setVrm={setVrm} vrm={vrm} lookAt={lookAt} />
+                <Character setVrm={setVrm} vrm={vrm} lookAt={lookAt} text={fullText} />
                 <object3D ref={lookAt}/>
             </Canvas>
         </Suspense>
+        <form onSubmit={(e) => {e.preventDefault(); setFullText(text); console.log("submitted")}}>
+        <input 
+            type="text" 
+            placeholder="Say something" 
+            className="absolute w-1/3 bottom-6 left-1/3" 
+            value={text}
+            name="text"
+            onChange={(e) => {setText(e.target.value); console.log(e.target.value);}}
+        />
+        </form>
+
+        </div>
+
 
     )
   }
