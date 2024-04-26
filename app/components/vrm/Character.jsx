@@ -15,7 +15,8 @@ export const Character = ({vrm, setVrm, lookAt}) => {
     const [mouthExpr, setMouthExpr] = useState('aa')
     const bounding = useRef()
     const expressions = useControls({
-        enableMouthControl: false,
+        talking: false,
+        enableFaceControl: false,
         happy: { value: 0, min: -1, max: 1, step: 0.1 },
         sad: { value: 0, min: -1, max: 1, step: 0.1 },
         blink: { value: 0, min: -1, max: 1, step: 0.1 },
@@ -43,10 +44,28 @@ export const Character = ({vrm, setVrm, lookAt}) => {
                 const clip = await loadMixamoAnimation(animationUrl, vrm)
                 // Apply the loaded animation to mixer and play
                 mixer.clipAction( clip ).play();
+                mixer.update()
             }
         }
         loadAnimation()
     }, [mixer, vrm])
+
+    useEffect(() => {
+        const loadAnimation = async () => {
+            const animationUrl = '/talking.fbx'
+            const clip = await loadMixamoAnimation(animationUrl, vrm)
+            if (mixer && expressions.talking) {
+                // Load animation
+                // Apply the loaded animation to mixer and play
+                mixer.clipAction( clip ).play();
+            } else if (mixer) {
+                mixer.clipAction(clip).stop();
+                // mixer.stopAllAction();
+            }
+        }
+        loadAnimation()
+
+    }, [expressions.talking, mixer, vrm])
 
     // load model
     useEffect(() => {
@@ -83,7 +102,6 @@ export const Character = ({vrm, setVrm, lookAt}) => {
                 return nextExpressions[expr]
             }
             const expr = getNextExpression(mouthExpr)
-            console.log(expr)
             setMouthExpr(expr)
         }
         setTimeout(changeMouth, 600)
@@ -92,18 +110,19 @@ export const Character = ({vrm, setVrm, lookAt}) => {
     useFrame(({pointer, clock}, delta) => {
         const x = (pointer.x * viewport.width) / 2
         const y = (pointer.y * viewport.height) / 2
-        const rotX = (pointer.x * viewport.width) / 9
+        const rotX = (pointer.x * viewport.width) / 15
 
         if (vrm) {
             // follow cursor
             lookAt.current.position.set(x, y, 0)
             vrm.lookAt.target = lookAt.current
 
-            const s = Math.sin( Math.PI * clock.elapsedTime );
+            const s = Math.sin( Math.PI * clock.elapsedTime * 2 );
+            const s2 = Math.sin( Math.PI * clock.elapsedTime * 3 );
             
             // talk
-            if (!expressions.enableMouthControl) {
-                vrm.expressionManager.setValue(mouthExpr, lerp(0, 0.6, s))
+            if (!expressions.enableFaceControl && expressions.talking) {
+                vrm.expressionManager.setValue(mouthExpr, lerp(0.1, 0.6, s2))
                 // clear other expressions
                 const expressions = ['aa', 'ee', 'ih', 'oh', 'ou']
                 for (const expr of expressions) {
@@ -116,8 +135,8 @@ export const Character = ({vrm, setVrm, lookAt}) => {
             // rotation
             bounding?.current.rotation.set(0, rotX, 0)
             // blink
-            vrm.expressionManager.setValue('blink', 0.1 - 0.1 * s);
-            if (expressions.enableMouthControl) {
+            vrm.expressionManager.setValue('blink', lerp(0, 1, s));
+            if (expressions.enableFaceControl) {
                 for (const expression in expressions) {
                     const element = expressions[expression];
                     vrm.expressionManager.setValue(expression, expressions[expression])
@@ -125,7 +144,7 @@ export const Character = ({vrm, setVrm, lookAt}) => {
             }
 
             // if animation is loaded
-	        if (mixer) {
+	        if (mixer && expressions.talking) {
 		        // update the animation
 		        mixer.update( delta );
 	        }
