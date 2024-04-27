@@ -12,10 +12,10 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
     const modelPath = '/Pocho.vrm'
     const {scene, viewport} = useThree()
     const [mixer, setMixer] = useState()
+    const [speaking, setSpeaking] = useState(false)
     const [mouthExpr, setMouthExpr] = useState('aa')
     const bounding = useRef()
     const expressions = useControls({
-        talking: false,
         enableFaceControl: false,
         happy: { value: 0, min: -1, max: 1, step: 0.1 },
         sad: { value: 0, min: -1, max: 1, step: 0.1 },
@@ -29,12 +29,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         oh: { value: 0, min: -1, max: 1, step: 0.1 },
         ou: { value: 0, min: -1, max: 1, step: 0.1 },
       })
-    
-    function loadFBX(vrm) {
-        // create AnimationMixer for VRM
-        const mixerio = new THREE.AnimationMixer(vrm.scene)
-        setMixer(mixerio)
-    }
+
     // speak
     useEffect(() => {
         if(text !== "") {
@@ -42,8 +37,23 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             utterance.voice = window.speechSynthesis.getVoices()[4]
             console.log(window.speechSynthesis.getVoices())
             speechSynthesis.speak(utterance);
+            utterance.onend = () => {
+                setSpeaking(false)
+            }
+            setSpeaking(true)
         }
     }, [text])
+    // clear mouth expressions after speak end
+    useEffect(() => {
+        const expressions = ['aa', 'ee', 'ih', 'oh', 'ou']
+        if(!speaking) {
+            for (const expression of expressions) {
+                vrm?.expressionManager?.setValue(expression, 0)
+            }
+        }
+    }, [speaking, vrm])
+
+
 
     // load animation
     useEffect(() => {
@@ -64,7 +74,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         const loadAnimation = async () => {
             const animationUrl = '/talking.fbx'
             const clip = await loadMixamoAnimation(animationUrl, vrm)
-            if (mixer && expressions.talking) {
+            if (mixer && speaking) {
                 // Load animation
                 // Apply the loaded animation to mixer and play
                 mixer.clipAction( clip ).play();
@@ -75,7 +85,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         }
         loadAnimation()
 
-    }, [expressions.talking, mixer, vrm])
+    }, [mixer, speaking, vrm])
 
     // load model
     useEffect(() => {
@@ -83,6 +93,12 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         loader.crossOrigin = 'anonymous';
     
         loader.register((parser) => { return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true }); });
+
+        function loadFBX(vrm) {
+            // create AnimationMixer for VRM
+            const mixerio = new THREE.AnimationMixer(vrm.scene)
+            setMixer(mixerio)
+        }
 
         loader.load(modelPath, (gltf) => {
             const model = gltf.userData.vrm;
@@ -98,6 +114,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             loadFBX(model)
         })
     }, [scene, setVrm])
+
     // talking animation
     useEffect(() => {
         const changeMouth = () => {
@@ -116,6 +133,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         }
         setTimeout(changeMouth, 600)
     }, [mouthExpr, setMouthExpr])
+
     // animate
     useFrame(({pointer, clock}, delta) => {
         const x = (pointer.x * viewport.width) / 2
@@ -127,25 +145,29 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             lookAt.current.position.set(x, y, 0)
             vrm.lookAt.target = lookAt.current
 
-            const s = Math.sin( Math.PI * clock.elapsedTime * 2 );
-            const s2 = Math.sin( Math.PI * clock.elapsedTime * 3 );
+            const blinkSpeed = Math.sin( Math.PI * clock.elapsedTime * 2 );
+            const mouthSpeed = Math.sin( Math.PI * clock.elapsedTime * 3 );
             
             // talk
-            if (!expressions.enableFaceControl && expressions.talking) {
-                vrm.expressionManager.setValue(mouthExpr, lerp(0.1, 0.6, s2))
+            if (!expressions.enableFaceControl && speaking) {
+                vrm.expressionManager.setValue(mouthExpr, lerp(0.1, 0.6, mouthSpeed))
                 // clear other expressions
                 const expressions = ['aa', 'ee', 'ih', 'oh', 'ou']
                 for (const expr of expressions) {
                     if (expr !== mouthExpr) {
-                        vrm.expressionManager.setValue(expr, lerp(0, 0.15, s))
+                        vrm.expressionManager.setValue(expr, lerp(0, 0.15, mouthSpeed))
                     }
                 }
             }
 
             // rotation
-            bounding?.current.rotation.set(0, rotX, 0)
+            bounding?.current.rotation.set(0, rotX / 2, 0)
+            const neck = vrm.humanoid.getNormalizedBoneNode('neck')
+            neck.rotation.set(0, rotX * 2, 0)
+
             // blink
-            vrm.expressionManager.setValue('blink', lerp(0, 1, s));
+            vrm.expressionManager.setValue('blink', lerp(0, 1, blinkSpeed));
+            // control panel
             if (expressions.enableFaceControl) {
                 for (const expression in expressions) {
                     const element = expressions[expression];
@@ -154,7 +176,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             }
 
             // if animation is loaded
-	        if (mixer && expressions.talking) {
+	        if (mixer && speaking) {
 		        // update the animation
 		        mixer.update( delta );
 	        }

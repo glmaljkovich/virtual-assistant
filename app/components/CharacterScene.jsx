@@ -47,14 +47,14 @@ export default function CharacterScene() {
                 <object3D ref={lookAt}/>
             </Canvas>
         </Suspense>
-        <form onSubmit={(e) => {e.preventDefault(); setFullText(text); console.log("submitted")}}>
+        <form onSubmit={(e) => {e.preventDefault(); setFullText(text); setText("")}}>
         <input 
             type="text" 
             placeholder="Say something" 
-            className="absolute w-1/3 bottom-6 left-1/3" 
+            className="absolute w-1/3 bottom-6 left-1/3 bg-slate-700 text-xl shadow-lg px-2 rounded-xl text-slate-200 border-0 focus:border-0 outline-sky-500" 
             value={text}
             name="text"
-            onChange={(e) => {setText(e.target.value); console.log(e.target.value);}}
+            onChange={(e) => {setText(e.target.value);}}
         />
         </form>
 
