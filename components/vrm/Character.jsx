@@ -5,15 +5,17 @@ import * as THREE from 'three';
 import { useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef, memo } from "react";
 import { lerp } from "three/src/math/MathUtils.js";
 
-export const Character = ({vrm, setVrm, lookAt, text}) => {
+export const Character = function Character({ lookAt, text, thinking}) {
     const modelPath = '/Pocho.vrm'
     const {scene, viewport} = useThree()
     const [mixer, setMixer] = useState()
     const [speaking, setSpeaking] = useState(false)
     const [mouthExpr, setMouthExpr] = useState('aa')
+    const [vrm, setVrm] = useState()
+    const [clips, setClips] = useState()
 
     const bounding = useRef()
     const expressions = useControls({
@@ -34,20 +36,12 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
 
     // speak
     useEffect(() => {
-        if(text !== "") {
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.voice = window.speechSynthesis.getVoices().find(v => v.name.includes('Male'))
-                utterance.pitch = expressions.pitch
-                console.log(text)
-                utterance.onend = () => {
-                    console.log("speak end")
-                    setSpeaking(false)
-                }
-                speechSynthesis.speak(utterance);
-                setSpeaking(true)
-
+        if(text !== "" && !thinking) {
+            setSpeaking(true)
+        } else {
+            setSpeaking(false)
         }
-    }, [expressions.pitch, text])
+    }, [expressions.pitch, text, thinking])
 
     // clear mouth expressions after speak end
     useEffect(() => {
@@ -59,52 +53,78 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
         }
     }, [speaking, vrm])
 
-
-
-    // load animation
+    // preload
     useEffect(() => {
         const loadAnimation = async () => {
             if (mixer) {
+                console.log("loading animations")
+                // talk
                 const animationUrl = '/talking.fbx'
-                // Load animation
-                const clip = await loadMixamoAnimation(animationUrl, vrm)
+                const clip = await loadMixamoAnimation(animationUrl, vrm, 'talking')
+                // think
+                const animationUrl2 = '/think.fbx'
+                const clip2 = await loadMixamoAnimation(animationUrl2, vrm, 'think')
+                // idle
+                const animationUrl3 = '/Idle2.fbx'
+                const clip3 = await loadMixamoAnimation(animationUrl3, vrm, 'idle')
                 // Apply the loaded animation to mixer and play
-                mixer.clipAction( clip ).play();
-                mixer.update()
+
+                setClips({
+                    'idle': clip3,
+                    'talking': clip,
+                    'think': clip2
+                })
             }
         }
-        loadAnimation()
+        function loadFBX(vrm) {
+            // create AnimationMixer for VRM
+            const mixerio = new THREE.AnimationMixer(vrm.scene)
+            console.log("loading mixer...")
+            setMixer(mixerio)
+            console.log(mixerio)
+        }
+
+        if (vrm && !mixer) {
+            loadFBX(vrm)
+        } else {
+            loadAnimation()
+        }
     }, [mixer, vrm])
 
+    // think
     useEffect(() => {
         const loadAnimation = async () => {
-            const animationUrl = '/talking.fbx'
-            const clip = await loadMixamoAnimation(animationUrl, vrm)
-            if (mixer && speaking) {
-                // Load animation
-                // Apply the loaded animation to mixer and play
-                mixer.clipAction( clip ).play();
-            } else if (mixer) {
-                mixer.clipAction(clip).stop();
-                // mixer.stopAllAction();
+            if (mixer && clips) {
+                console.log('playing animations')
+                if (thinking) {
+                    console.log("thinking anim")
+                    mixer.stopAllAction()
+                    mixer.clipAction(clips['think'])?.setLoop(THREE.LoopOnce).play();
+                } else if (speaking) {
+                    console.log("speaking")
+                    // Load animation
+                    // Apply the loaded animation to mixer and play
+                    mixer.stopAllAction()
+                    mixer.clipAction(clips['talking'])?.play();
+                } else {
+                    console.log("speak/think back to Idle")
+                    mixer.stopAllAction()
+                    mixer.clipAction(clips['idle'])?.play();
+                }
+                mixer.update(0)
             }
+
         }
         loadAnimation()
-
-    }, [mixer, speaking, vrm])
+    }, [mixer, thinking, speaking, vrm, clips])
 
     // load model
     useEffect(() => {
+        console.log("loading model")
         const loader = new GLTFLoader();
         loader.crossOrigin = 'anonymous';
     
         loader.register((parser) => { return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true }); });
-
-        function loadFBX(vrm) {
-            // create AnimationMixer for VRM
-            const mixerio = new THREE.AnimationMixer(vrm.scene)
-            setMixer(mixerio)
-        }
 
         loader.load(modelPath, (gltf) => {
             const model = gltf.userData.vrm;
@@ -117,7 +137,6 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             scene.add(model.scene)
             console.log(model)
             setVrm(model)
-            loadFBX(model)
         })
     }, [scene, setVrm])
 
@@ -182,9 +201,9 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
             }
 
             // if animation is loaded
-	        if (mixer && speaking) {
+	        if (mixer) {
 		        // update the animation
-		        mixer.update( delta );
+		        mixer.update(delta);
 	        }
 
             vrm.update(delta)

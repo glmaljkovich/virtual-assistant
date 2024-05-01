@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Message as VercelChatMessage, StreamingTextResponse, createStreamDataTransformer } from "ai";
+import { Message as VercelChatMessage, StreamingTextResponse, createStreamDataTransformer, LangChainStream, Message, StreamData } from "ai";
 
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
+import { AIMessage, HumanMessage } from "langchain/schema";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge'

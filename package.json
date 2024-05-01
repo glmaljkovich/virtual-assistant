@@ -18,6 +18,7 @@
     "@react-three/postprocessing": "^2.16.2",
     "@types/three": "^0.162.0",
     "ai": "^3.1.0",
+    "elevenlabs": "^0.4.1",
     "flowbite-react": "^0.8.0",
     "langchain": "^0.1.36",
     "leva": "^0.9.35",

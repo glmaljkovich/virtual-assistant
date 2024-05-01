@@ -9,7 +9,7 @@ import { mixamoVRMRigMap } from './mixamoVRMRigMap.js';
  * @param {VRM} vrm A target VRM
  * @returns {Promise<THREE.AnimationClip>} The converted AnimationClip
  */
-export function loadMixamoAnimation( url, vrm ) {
+export function loadMixamoAnimation( url, vrm, name ) {
 
 	const loader = new FBXLoader(); // A loader which loads FBX
 	return loader.loadAsync( url ).then( ( asset ) => {
@@ -90,7 +90,7 @@ export function loadMixamoAnimation( url, vrm ) {
 
 		} );
 
-		return new THREE.AnimationClip( 'vrmAnimation', clip.duration, tracks );
+		return new THREE.AnimationClip(name, clip.duration, tracks );
 
 	} );
 

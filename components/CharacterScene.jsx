@@ -46,9 +46,9 @@ function BasicInput() {
 }
 
 export default function CharacterScene() {
-    const [vrm, setVrm] = useState()
     const lookAt = useRef()
     const [fullText, setFullText] = useState("")
+    const [thinking, setThinking] = useState(false)
     return (
         <div className="h-full w-full">
             <Suspense fallback={null}>
@@ -57,12 +57,12 @@ export default function CharacterScene() {
                     <spotLight position={[0, 2, -1]} intensity={0.4} />
                     <ambientLight intensity={0.65} />
                     <Stars />
-                    <Character setVrm={setVrm} vrm={vrm} lookAt={lookAt} text={fullText} />
+                    <Character lookAt={lookAt} text={fullText} thinking={thinking} />
                     <object3D ref={lookAt}/>
                 </Canvas>
             </Suspense>
             <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
-                <Chat setText={setFullText}/>
+                <Chat setText={setFullText} setThinking={setThinking}/>
             </div>
         </div>
     )
