@@ -99,19 +99,22 @@ export const Character = function Character({ lookAt, text, thinking}) {
                 if (thinking) {
                     console.log("thinking anim")
                     mixer.stopAllAction()
+                    mixer.clipAction(clips['talking'])?.stop()
+                    mixer.clipAction(clips['idle'])?.stop()
                     mixer.clipAction(clips['think'])?.setLoop(THREE.LoopOnce).play();
                 } else if (speaking) {
                     console.log("speaking")
                     // Load animation
                     // Apply the loaded animation to mixer and play
-                    mixer.stopAllAction()
+                    mixer.clipAction(clips['think'])?.stop()
+                    mixer.clipAction(clips['idle'])?.stop()
                     mixer.clipAction(clips['talking'])?.play();
                 } else {
                     console.log("speak/think back to Idle")
-                    mixer.stopAllAction()
+                    mixer.clipAction(clips['talking'])?.stop()
+                    mixer.clipAction(clips['think'])?.stop()
                     mixer.clipAction(clips['idle'])?.play();
                 }
-                mixer.update(0)
             }
 
         }
