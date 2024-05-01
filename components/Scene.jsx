@@ -1,7 +1,7 @@
 'use client';
 import { Canvas, useThree } from '@react-three/fiber'
 import { CameraControls, Bvh, ScrollControls, Scroll } from '@react-three/drei'
-import { Cubes, Camera, Light1, Light2, Stars } from '@/app/components/Cubes'
+import { Cubes, Camera, Light1, Light2, Stars } from '@/components/Cubes'
 import { EffectComposer, Selection, Outline, ToneMapping     } from "@react-three/postprocessing"
 
 

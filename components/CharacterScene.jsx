@@ -5,8 +5,8 @@ import { Stars } from "./Cubes";
 import { Suspense, useEffect, useState, useRef } from "react";
 import { Object3D } from "three";
 
-import { Character } from "@/app/components/vrm/Character"
-import { div } from "three/examples/jsm/nodes/Nodes.js";
+import { Character } from "@/components/vrm/Character"
+import Chat from "@/components/Chat"
 
 export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
     const camera = useRef()
@@ -29,24 +29,9 @@ export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
     )
 }
 
-
-export default function CharacterScene() {
-    const [vrm, setVrm] = useState()
-    const lookAt = useRef()
+function BasicInput() {
     const [text, setText] = useState("")
-    const [fullText, setFullText] = useState("")
     return (
-        <div className="h-full w-full">
-        <Suspense fallback={null}>
-            <Canvas flat className="canvi">
-                <Camera1 lookAt={lookAt}/>
-                <spotLight position={[0, 2, -1]} intensity={0.4} />
-                <ambientLight intensity={0.65} />
-                <Stars />
-                <Character setVrm={setVrm} vrm={vrm} lookAt={lookAt} text={fullText} />
-                <object3D ref={lookAt}/>
-            </Canvas>
-        </Suspense>
         <form onSubmit={(e) => {e.preventDefault(); setFullText(text); setText("")}}>
         <input 
             type="text" 
@@ -56,10 +41,29 @@ export default function CharacterScene() {
             name="text"
             onChange={(e) => {setText(e.target.value);}}
         />
-        </form>
+    </form>
+    )
+}
 
+export default function CharacterScene() {
+    const [vrm, setVrm] = useState()
+    const lookAt = useRef()
+    const [fullText, setFullText] = useState("")
+    return (
+        <div className="h-full w-full">
+            <Suspense fallback={null}>
+                <Canvas flat className="canvi">
+                    <Camera1 lookAt={lookAt}/>
+                    <spotLight position={[0, 2, -1]} intensity={0.4} />
+                    <ambientLight intensity={0.65} />
+                    <Stars />
+                    <Character setVrm={setVrm} vrm={vrm} lookAt={lookAt} text={fullText} />
+                    <object3D ref={lookAt}/>
+                </Canvas>
+            </Suspense>
+            <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
+                <Chat setText={setFullText}/>
+            </div>
         </div>
-
-
     )
   }

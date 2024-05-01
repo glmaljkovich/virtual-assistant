@@ -14,6 +14,7 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
     const [mixer, setMixer] = useState()
     const [speaking, setSpeaking] = useState(false)
     const [mouthExpr, setMouthExpr] = useState('aa')
+    const [utter, setUtterance] = useState(null)
     const bounding = useRef()
     const expressions = useControls({
         enableFaceControl: false,
@@ -33,14 +34,17 @@ export const Character = ({vrm, setVrm, lookAt, text}) => {
     // speak
     useEffect(() => {
         if(text !== "") {
-            let utterance = new SpeechSynthesisUtterance(text);
-            utterance.voice = window.speechSynthesis.getVoices()[4]
-            console.log(window.speechSynthesis.getVoices())
-            speechSynthesis.speak(utterance);
-            utterance.onend = () => {
-                setSpeaking(false)
-            }
-            setSpeaking(true)
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = window.speechSynthesis.getVoices().find(v => v.name.includes('Male'))
+    
+                console.log(text)
+                utterance.onend = () => {
+                    console.log("speak end")
+                    setSpeaking(false)
+                }
+                speechSynthesis.speak(utterance);
+                setSpeaking(true)
+
         }
     }, [text])
     // clear mouth expressions after speak end
