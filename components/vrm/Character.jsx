@@ -98,10 +98,11 @@ export const Character = function Character({ lookAt, text, thinking}) {
                 console.log('playing animations')
                 if (thinking) {
                     console.log("thinking anim")
-                    mixer.stopAllAction()
                     mixer.clipAction(clips['talking'])?.stop()
                     mixer.clipAction(clips['idle'])?.stop()
-                    mixer.clipAction(clips['think'])?.setLoop(THREE.LoopOnce).play();
+                    const thinkAction = mixer.clipAction(clips['think'])
+                    thinkAction.clampWhenFinished = true
+                    thinkAction?.setLoop(THREE.LoopOnce).play();
                 } else if (speaking) {
                     console.log("speaking")
                     // Load animation
