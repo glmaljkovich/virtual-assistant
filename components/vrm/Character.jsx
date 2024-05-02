@@ -1,5 +1,5 @@
 
-import { useControls } from "leva";
+import { useControls, Leva } from "leva";
 import { loadMixamoAnimation } from "./loadMixamoAnimation"
 import * as THREE from 'three';
 import { useFrame, useThree } from "@react-three/fiber";
@@ -16,6 +16,8 @@ export const Character = function Character({ lookAt, text, thinking}) {
     const [mouthExpr, setMouthExpr] = useState('aa')
     const [vrm, setVrm] = useState()
     const [clips, setClips] = useState()
+
+    const LevaI = <Leva collapsed/>
 
     const bounding = useRef()
     const expressions = useControls({
