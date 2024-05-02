@@ -192,7 +192,9 @@ export const Character = function Character({ lookAt, text, thinking}) {
             }
 
             // rotation
-            bounding?.current.rotation.set(0, rotX / 2, 0)
+            // bounding?.current.rotation.set(0, rotX / 2, 0)
+            const chest = vrm.humanoid.getNormalizedBoneNode('chest')
+            chest.rotation.set(0, rotX / 2, 0)
             const neck = vrm.humanoid.getNormalizedBoneNode('neck')
             neck.rotation.set(0, rotX * 2, 0)
 
