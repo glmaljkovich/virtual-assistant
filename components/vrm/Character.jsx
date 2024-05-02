@@ -177,7 +177,7 @@ export const Character = function Character({ lookAt, text, thinking}) {
             vrm.lookAt.target = lookAt.current
 
             const blinkSpeed = Math.sin( Math.PI * clock.elapsedTime * 2 );
-            const mouthSpeed = Math.sin( Math.PI * clock.elapsedTime * 3 );
+            const mouthSpeed = Math.sin( Math.PI * clock.elapsedTime * 3.5 );
             
             // talk
             if (!expressions.enableFaceControl && speaking) {
