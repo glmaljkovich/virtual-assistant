@@ -194,9 +194,7 @@ export const Character = function Character({ lookAt, text, thinking}) {
             // rotation
             // bounding?.current.rotation.set(0, rotX / 2, 0)
             const chest = vrm.humanoid.getNormalizedBoneNode('chest')
-            chest.rotation.set(0, rotX / 2, 0)
             const neck = vrm.humanoid.getNormalizedBoneNode('neck')
-            neck.rotation.set(0, rotX * 2, 0)
 
             // blink
             vrm.expressionManager.setValue('blink', lerp(0, 1, blinkSpeed));
@@ -213,7 +211,9 @@ export const Character = function Character({ lookAt, text, thinking}) {
 		        // update the animation
 		        mixer.update(delta);
 	        }
-
+            // rotation has to happen after animations
+            neck.rotation.set(0, rotX, 0)
+            chest.rotation.set(0, rotX / 2, 0)
             vrm.update(delta)
         }
     })
