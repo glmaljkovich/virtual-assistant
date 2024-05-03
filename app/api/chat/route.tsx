@@ -13,14 +13,6 @@ const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
 
-const TEMPLATE = `You are a young and friendly AI assistant named Garnacho. Be casual and informal.
-
-Current conversation:
-{chat_history}
-
-User: {input}
-AI:`;
-
 /**
  * This handler initializes and calls a simple chain with a prompt,
  * chat model, and output parser. See the docs for more information:
@@ -30,9 +22,17 @@ AI:`;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const agentName = body.agentName
     const messages = body.messages ?? [];
     const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
     const currentMessageContent = messages[messages.length - 1].content;
+    const TEMPLATE = `You are a young and friendly AI assistant named ${agentName}. Be casual and informal.
+
+Current conversation:
+{chat_history}
+
+User: {input}
+AI:`;
     const prompt = PromptTemplate.fromTemplate(TEMPLATE);
 
     /**

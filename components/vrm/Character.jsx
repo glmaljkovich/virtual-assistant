@@ -17,23 +17,16 @@ export const Character = function Character({ lookAt, text, thinking}) {
     const [vrm, setVrm] = useState()
     const [clips, setClips] = useState()
 
-    const LevaI = <Leva collapsed/>
-
     const bounding = useRef()
     const expressions = useControls({
-        pitch: {value: 1.4, min: 0, max: 2, step: 0.1},
         enableFaceControl: false,
+        pitch: {value: 1.4, min: 0, max: 2, step: 0.1},
         happy: { value: 0, min: -1, max: 1, step: 0.1 },
         sad: { value: 0, min: -1, max: 1, step: 0.1 },
         blink: { value: 0, min: -1, max: 1, step: 0.1 },
         angry: { value: 0, min: -1, max: 1, step: 0.1 },
         surprised: { value: 0, min: -1, max: 1, step: 0.1 },
         relaxed: { value: 0, min: -1, max: 1, step: 0.1 },
-        aa: { value: 0, min: -1, max: 1, step: 0.1 },
-        ee: { value: 0, min: -1, max: 1, step: 0.1 },
-        ih: { value: 0, min: -1, max: 1, step: 0.1 },
-        oh: { value: 0, min: -1, max: 1, step: 0.1 },
-        ou: { value: 0, min: -1, max: 1, step: 0.1 },
       })
 
     // speak

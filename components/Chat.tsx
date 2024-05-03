@@ -7,12 +7,16 @@ const CHAT_ENDPOINT = '/api/chat'
 type ChatProps = {
     setText: Dispatch<SetStateAction<string>>,
     setThinking: Dispatch<SetStateAction<boolean>>,
+    agentName: string
 }
 
-export default function Chat({setText, setThinking}: ChatProps) {
+export default function Chat({setText, setThinking, agentName}: ChatProps) {
   const player = useRef<HTMLAudioElement>(null);
   const { messages, input, handleInputChange, handleSubmit, isLoading: chatEndpointIsLoading } = useChat({
     api: CHAT_ENDPOINT,
+    body: {
+      agentName: agentName
+    },
     onFinish: async (message) => {
       const audio = await getElevenLabsResponse(message.content)
       // const audio = await (await fetch('/hmm.mp3')).blob()
