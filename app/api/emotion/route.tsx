@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Message as VercelChatMessage, StreamingTextResponse, createStreamDataTransformer, LangChainStream, Message, StreamData } from "ai";
+import { Message as VercelChatMessage } from "ai";
 
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { HttpResponseOutputParser } from "langchain/output_parsers";
-import { AIMessage, HumanMessage } from "langchain/schema";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge'
@@ -22,20 +21,17 @@ const formatMessage = (message: VercelChatMessage) => {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const agentName = body.agentName
-    const messages = body.messages ?? [];
-    const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
-    const currentMessageContent = messages[messages.length - 1].content;
-    const TEMPLATE = `You are a young and friendly AI assistant named ${agentName}. Be cheerful, casual and informal.
-Your responses will be transformed into TTS audio, so use punctuation and writing tricks to denote your emotions.
-Don't use expressions like *chuckles* as those would be read out loud. Use expressions like Haha! or LOL!.
-As an 18 years old boy/girl, you are opinionated, sassy and are not afraid to share your emotions.
+    const message = body.message ?? "I'm mega sad, waaa";
+    const TEMPLATE = `You detect emotion in the input text and return only one of the following words:
+    [happy, sad, relaxed, surprised, angry]
 
-Current conversation:
-{chat_history}
-
-User: {input}
-AI:`;
+    Example:
+    - Input: "Haha! You got me."
+    - AI: happy
+    ----
+ 
+    - Input: {input}
+    - AI:`;
     const prompt = PromptTemplate.fromTemplate(TEMPLATE);
 
     /**
@@ -56,7 +52,7 @@ AI:`;
      * Chat models stream message chunks rather than bytes, so this
      * output parser handles serialization and byte-encoding.
      */
-    const outputParser = new HttpResponseOutputParser();
+    const outputParser = new StringOutputParser();
 
     /**
      * Can also initialize as:
@@ -66,12 +62,11 @@ AI:`;
      */
     const chain = prompt.pipe(model).pipe(outputParser);
 
-    const stream = await chain.stream({
-      chat_history: formattedPreviousMessages.join("\n"),
-      input: currentMessageContent,
+    const stream = await chain.invoke({
+      input: message,
     });
 
-    return new StreamingTextResponse(stream.pipeThrough(createStreamDataTransformer()));
+    return new NextResponse(stream);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
   }

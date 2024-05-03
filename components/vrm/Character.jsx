@@ -8,7 +8,7 @@ import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { Suspense, useEffect, useState, useRef, memo } from "react";
 import { lerp } from "three/src/math/MathUtils.js";
 
-export const Character = function Character({ lookAt, text, thinking, assistant}) {
+export const Character = function Character({ lookAt, text, thinking, assistant, emotion}) {
     const {scene, viewport} = useThree()
     const [mixer, setMixer] = useState()
     const [speaking, setSpeaking] = useState(false)
@@ -20,9 +20,9 @@ export const Character = function Character({ lookAt, text, thinking, assistant}
     const expressions = useControls({
         enableFaceControl: false,
         pitch: {value: 1.4, min: 0, max: 2, step: 0.1},
+        blink: { value: 0, min: -1, max: 1, step: 0.1 },
         happy: { value: 0, min: -1, max: 1, step: 0.1 },
         sad: { value: 0, min: -1, max: 1, step: 0.1 },
-        blink: { value: 0, min: -1, max: 1, step: 0.1 },
         angry: { value: 0, min: -1, max: 1, step: 0.1 },
         surprised: { value: 0, min: -1, max: 1, step: 0.1 },
         relaxed: { value: 0, min: -1, max: 1, step: 0.1 },
@@ -44,6 +44,24 @@ export const Character = function Character({ lookAt, text, thinking, assistant}
             setSpeaking(false)
         }
     }, [expressions.pitch, text, thinking])
+
+    // emote
+    useEffect(() => {
+        const emotions = [
+            "happy",
+            "sad",
+            "angry",
+            "surprised",
+            "relaxed"
+        ]
+        if(emotion !== ""){
+            vrm?.expressionManager.setValue(emotion, 0.5)
+        } else {
+            for (const emot of emotions) {
+                vrm?.expressionManager.setValue(emot, 0)
+            }
+        }
+    }, [vrm, emotion])
 
     // clear mouth expressions after speak end
     useEffect(() => {

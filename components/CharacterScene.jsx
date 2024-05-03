@@ -31,35 +31,19 @@ export function Camera1(props = {default: boolean = true, lookAt: Object3D}) {
 
 function Ground() {
     const gridConfig = {
-      cellSize: 0.5,
-      cellThickness: 0.5,
+      cellSize: 0.75,
+      cellThickness: 0.6,
       cellColor: '#6f6f6f',
       sectionSize: 3,
       sectionThickness: 1,
       sectionColor: '#9d4b4b',
       fadeDistance: 30,
-      fadeStrength: 1,
+      fadeStrength: 1.5,
       followCamera: false,
       infiniteGrid: true
     }
-    return <Grid position={[0, -0.01, 0]} args={[10.5, 10.5]} {...gridConfig} />
+    return <Grid position={[0, -0.01, 0]} args={[10, 10]} {...gridConfig} />
   }
-
-function BasicInput() {
-    const [text, setText] = useState("")
-    return (
-        <form onSubmit={(e) => {e.preventDefault(); setFullText(text); setText("")}}>
-        <input 
-            type="text" 
-            placeholder="Say something" 
-            className="absolute w-1/3 bottom-6 left-1/3 bg-slate-700 text-xl shadow-lg px-2 rounded-xl text-slate-200 border-0 focus:border-0 outline-sky-500" 
-            value={text}
-            name="text"
-            onChange={(e) => {setText(e.target.value);}}
-        />
-    </form>
-    )
-}
 
 export default function CharacterScene() {
     const lookAt = useRef()
@@ -67,9 +51,11 @@ export default function CharacterScene() {
     const [fullText, setFullText] = useState("")
     const [thinking, setThinking] = useState(false)
     const [assistant, setAssistant] = useState('Illia')
+    const [emotion, setEmotion] = useState("")
+
     return (
         <div className="relative h-full w-full">
-            <div className="absolute top-0 left-0 text-xl w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-tl-xl rounded-br-3xl bg-slate-700">
+            <div className="absolute top-0 left-0 text-xl w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-br-3xl bg-slate-700">
                 {assistant}
                 <span className="pointer " onClick={() => assistant === 'Illia' ? setAssistant('Amelia') : setAssistant('Illia') }>
                     🔄
@@ -90,13 +76,25 @@ export default function CharacterScene() {
                     />
                     <spotLight position={[0, 2, -1]} intensity={0.5} />
                     <ambientLight intensity={0.6} />
+                    <Ground />
                     <Stars />
-                    <Character lookAt={lookAt} text={fullText} thinking={thinking} assistant={assistant} />
+                    <Character
+                        lookAt={lookAt}
+                        text={fullText}
+                        thinking={thinking}
+                        assistant={assistant}
+                        emotion={emotion}
+                    />
                     <object3D ref={lookAt}/>
                 </Canvas>
                 <Leva collapsed />
             <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
-                <Chat setText={setFullText} setThinking={setThinking} agentName={assistant}/>
+                <Chat
+                    setText={setFullText}
+                    setThinking={setThinking}
+                    agentName={assistant}
+                    setEmotion={(emot) => setEmotion(emot)}
+                />
             </div>
         </div>
     )
