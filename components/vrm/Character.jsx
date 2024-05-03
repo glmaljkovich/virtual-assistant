@@ -8,8 +8,7 @@ import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { Suspense, useEffect, useState, useRef, memo } from "react";
 import { lerp } from "three/src/math/MathUtils.js";
 
-export const Character = function Character({ lookAt, text, thinking}) {
-    const modelPath = '/Pocho.vrm'
+export const Character = function Character({ lookAt, text, thinking, assistant}) {
     const {scene, viewport} = useThree()
     const [mixer, setMixer] = useState()
     const [speaking, setSpeaking] = useState(false)
@@ -28,6 +27,14 @@ export const Character = function Character({ lookAt, text, thinking}) {
         surprised: { value: 0, min: -1, max: 1, step: 0.1 },
         relaxed: { value: 0, min: -1, max: 1, step: 0.1 },
       })
+
+    const getModelPath = (assistant) => {
+        const assistants = {
+            'Illia': '/Illia.vrm',
+            'Amelia': '/Amelia.vrm'
+        }
+        return assistants[assistant]
+    }
 
     // speak
     useEffect(() => {
@@ -48,7 +55,7 @@ export const Character = function Character({ lookAt, text, thinking}) {
         }
     }, [speaking, vrm])
 
-    // preload
+    // preload animations
     useEffect(() => {
         const loadAnimation = async () => {
             if (mixer) {
@@ -71,6 +78,13 @@ export const Character = function Character({ lookAt, text, thinking}) {
                 })
             }
         }
+
+        if (vrm && mixer) {
+            loadAnimation()
+        }
+    }, [mixer, vrm])
+    // load mixer
+    useEffect(() => {
         function loadFBX(vrm) {
             // create AnimationMixer for VRM
             const mixerio = new THREE.AnimationMixer(vrm.scene)
@@ -79,12 +93,10 @@ export const Character = function Character({ lookAt, text, thinking}) {
             console.log(mixerio)
         }
 
-        if (vrm && !mixer) {
+        if (vrm) {
             loadFBX(vrm)
-        } else {
-            loadAnimation()
         }
-    }, [mixer, vrm])
+    }, [vrm])
 
     // think
     useEffect(() => {
@@ -125,7 +137,7 @@ export const Character = function Character({ lookAt, text, thinking}) {
     
         loader.register((parser) => { return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true }); });
 
-        loader.load(modelPath, (gltf) => {
+        loader.load(getModelPath(assistant), (gltf) => {
             const model = gltf.userData.vrm;
             VRMUtils.removeUnnecessaryVertices( gltf.scene );
             VRMUtils.removeUnnecessaryJoints( gltf.scene );
@@ -133,11 +145,14 @@ export const Character = function Character({ lookAt, text, thinking}) {
                 obj.frustumCulled = false;
 
             } );
+            model.scene.name = "character"
+            // remove previously loaded model
+            scene.remove(scene.children.find(obj => obj.name === "character"))
             scene.add(model.scene)
             console.log(model)
             setVrm(model)
         })
-    }, [scene, setVrm])
+    }, [assistant, scene, setVrm])
 
     // talking animation
     useEffect(() => {

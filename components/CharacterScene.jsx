@@ -69,8 +69,11 @@ export default function CharacterScene() {
     const [assistant, setAssistant] = useState('Illia')
     return (
         <div className="h-full w-full">
-            <div className="aboslute top-0 left-0 text-xl w-24 uppercase tracking-wider font-bold text-white px-4 rounded-tl-xl rounded-br-3xl bg-slate-700">
+            <div className="absolute top-0 left-0 text-xl w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-tl-xl rounded-br-3xl bg-slate-700">
                 {assistant}
+                <span className="pointer " onClick={() => assistant === 'Illia' ? setAssistant('Amelia') : setAssistant('Illia') }>
+                    🔄
+                </span>
             </div>
                 <Canvas flat className="canvi">
                     <Camera1 lookAt={lookAt} />
@@ -88,7 +91,7 @@ export default function CharacterScene() {
                     <spotLight position={[0, 2, -1]} intensity={0.5} />
                     <ambientLight intensity={0.6} />
                     <Stars />
-                    <Character lookAt={lookAt} text={fullText} thinking={thinking} />
+                    <Character lookAt={lookAt} text={fullText} thinking={thinking} assistant={assistant} />
                     <object3D ref={lookAt}/>
                 </Canvas>
                 <Leva collapsed />

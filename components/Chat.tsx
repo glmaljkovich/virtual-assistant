@@ -32,6 +32,15 @@ export default function Chat({setText, setThinking, agentName}: ChatProps) {
       };
     },
   });
+  const messagesEndRef = useRef<null | HTMLLIElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
 
   const getElevenLabsResponse = async (text: string) => {
     const response = await fetch("/api/tts", {
@@ -40,7 +49,8 @@ export default function Chat({setText, setThinking, agentName}: ChatProps) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        text: text
+        text: text,
+        assistant: agentName
       })
     });
 
@@ -78,6 +88,7 @@ export default function Chat({setText, setThinking, agentName}: ChatProps) {
 
           </li>
         ))}
+        <li ref={messagesEndRef}></li>
       </ul>
  
       <form className='flex gap-4 w-full' onSubmit={handlePrompt}>
