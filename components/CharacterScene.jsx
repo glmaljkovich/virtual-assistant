@@ -68,7 +68,7 @@ export default function CharacterScene() {
     const [thinking, setThinking] = useState(false)
     const [assistant, setAssistant] = useState('Illia')
     return (
-        <div className="h-full w-full">
+        <div className="relative h-full w-full">
             <div className="absolute top-0 left-0 text-xl w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-tl-xl rounded-br-3xl bg-slate-700">
                 {assistant}
                 <span className="pointer " onClick={() => assistant === 'Illia' ? setAssistant('Amelia') : setAssistant('Illia') }>
