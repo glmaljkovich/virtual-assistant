@@ -90,7 +90,7 @@ export default function CharacterScene() {
                     />
                     <object3D ref={lookAt}/>
                 </Canvas>
-                <Leva collapsed />
+                <Leva collapsed enabled={false}/>
                 <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
                     <Chat
                         setText={setFullText}
