@@ -5,7 +5,7 @@ import CharacterScene from "@/components/CharacterScene"
 
 export default function Home() {
   return (
-        <div className="h-full w-full">
+        <div className="h-dvh w-full">
           <Loader />
           <CharacterScene />
         </div>

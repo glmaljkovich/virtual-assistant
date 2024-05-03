@@ -54,7 +54,7 @@ export default function CharacterScene() {
     const [emotion, setEmotion] = useState("")
 
     return (
-        <div className="h-full w-full">
+        <div className="h-dvh w-full">
             <div className="absolute top-0 z-10 left-0 text-center">
                 <div className=" text-xl mt-2 ml-2 w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-3xl bg-slate-700">
                     {assistant}
