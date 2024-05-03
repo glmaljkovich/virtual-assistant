@@ -14,7 +14,11 @@ export async function POST(req: NextRequest) {
       voice: assistantVoices.get(body.assistant),
       text: body.text,
       model_id: "eleven_turbo_v2",
-      optimize_streaming_latency: "1"
+      optimize_streaming_latency: "1",
+      voice_settings: {
+        similarity_boost: 0.75,
+        stability: 0.5
+      }
     });
 
     return new Response(audio as any, {

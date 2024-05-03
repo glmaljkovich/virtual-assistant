@@ -54,13 +54,16 @@ export default function CharacterScene() {
     const [emotion, setEmotion] = useState("")
 
     return (
-        <div className="relative h-full w-full">
-            <div className="absolute top-0 left-0 text-xl w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-br-3xl bg-slate-700">
-                {assistant}
-                <span className="pointer " onClick={() => assistant === 'Illia' ? setAssistant('Amelia') : setAssistant('Illia') }>
-                    🔄
-                </span>
+        <div className="h-full w-full">
+            <div className="absolute top-0 z-10 left-0 text-center">
+                <div className=" text-xl mt-2 ml-2 w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-3xl bg-slate-700">
+                    {assistant}
+                    <span className="pointer " onClick={() => assistant === 'Illia' ? setAssistant('Amelia') : setAssistant('Illia') }>
+                        🔄
+                    </span>
+                </div>
             </div>
+            <div className="relative h-full">
                 <Canvas flat className="canvi">
                     <Camera1 lookAt={lookAt} />
                     <OrbitControls
@@ -88,14 +91,16 @@ export default function CharacterScene() {
                     <object3D ref={lookAt}/>
                 </Canvas>
                 <Leva collapsed />
-            <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
-                <Chat
-                    setText={setFullText}
-                    setThinking={setThinking}
-                    agentName={assistant}
-                    setEmotion={(emot) => setEmotion(emot)}
-                />
+                <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
+                    <Chat
+                        setText={setFullText}
+                        setThinking={setThinking}
+                        agentName={assistant}
+                        setEmotion={(emot) => setEmotion(emot)}
+                    />
+                </div>
             </div>
+
         </div>
     )
   }
