@@ -19,8 +19,11 @@ import { easing } from "maath";
 import { Character } from "@/components/vrm/Character";
 import Chat from "@/components/Chat";
 import {Skybox} from "@/components/Skybox"
+import {StonePlatform} from "@/components/StonePlatform"
 
 import { EffectComposer, Bloom, DepthOfField   } from "@react-three/postprocessing"
+import { PointLightHelper } from 'three';
+import { useHelper, Shadow } from '@react-three/drei';
 
 
 function Effects() {
@@ -58,22 +61,54 @@ export function Camera1(
 
 function CursorLight(props = {lookAt}) {
     const lookAtLight = useRef();
+    useHelper(lookAtLight, SpotLightHelper, 'cyan');
     useFrame(() => {
       if(lookAtLight.current) {
-          lookAtLight.current.position.set(props.lookAt.current.position.x, props.lookAt.current.position.y + 1.3, 0.35)
+          lookAtLight.current.position.set(props.lookAt.current.position.x, props.lookAt.current.position.y, 0)
       }
     })
     return (
-        <pointLight ref={lookAtLight} color={'#EFBD4E'} decay={1.2} intensity={0.15}/>
+        <spotLight 
+            ref={lookAtLight} 
+            color={'#be123c'} 
+            rotation={[-Math.PI / 2, 0, 0]}
+            angle={0.3}
+            penumbra={1}
+            intensity={1}
+
+        />
+    )
+}
+
+function TopLight() {
+    const lookAtLighto = useRef();
+    useHelper(lookAtLighto, PointLightHelper);
+    return (
+        <pointLight 
+            ref={lookAtLighto} 
+            color={'#EFBD4E'} 
+            intensity={3.2}
+            decay={1}
+            position={[0,3,0]}
+            castShadow
+        />
     )
 }
 
 function Platform() {
     return (
-        <mesh position={[0,-0.15,-1]} receiveShadow>
-        <boxGeometry args={[6,0.1,5]}/>
-        <meshToonMaterial color="white"/>
-      </mesh>
+        <group>
+        <Shadow
+  color="black"
+  colorStop={0}
+  opacity={0.5}
+  fog={false} // Reacts to fog (default=false)
+/>
+        <mesh position={[0,-50.15,-1]} receiveShadow>
+            <boxGeometry args={[6,100,5]}/>
+            <meshToonMaterial color="white"/>
+        </mesh>
+        </group>
     )
 }
 
@@ -141,8 +176,8 @@ export default function CharacterScene() {
           />
           <Skybox />
           <Effects />
-          <spotLight position={[0, 2, -1]} intensity={0.7} />
-          <ambientLight intensity={0.8} />
+          <TopLight />
+          <ambientLight intensity={1} />
           {debug && <Ground /> }
           <Character
             lookAt={lookAt}
@@ -151,13 +186,12 @@ export default function CharacterScene() {
             assistant={assistant}
             emotion={emotion}
           />
-          <Platform />
+          <StonePlatform />
           <object3D ref={lookAt} />
-          <CursorLight lookAt={lookAt} />
-          <pointLight position={[0,2.3,-0.25]} color={'#EFBD4E'} decay={1.2} intensity={0.55}/>
           
         </Canvas>
         <Leva collapsed hidden={!debug} />
+        <div className="absolute bottom-0 h-32 w-full bg-gradient-to-t to-70% from-black/80"></div>
         <div className="w-full px-4 md:w-1/3 bottom-6 md:left-1/3 absolute ">
           <Chat
             setText={setFullText}

@@ -88,7 +88,6 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
             VRMUtils.removeUnnecessaryJoints( gltf.scene );
             model.scene.traverse( ( obj ) => {
                 obj.frustumCulled = false;
-
             } );
             model.scene.name = "character"
             // remove previously loaded model
