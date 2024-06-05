@@ -5,7 +5,7 @@ import CharacterScene from "@/components/CharacterScene"
 
 export default function Home() {
   return (
-        <div className="h-dvh w-full">
+        <div className="h-dvh w-full bg-gradient-to-b from-gray-950 to-90% to-black">
           <Loader />
           <CharacterScene />
         </div>

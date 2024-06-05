@@ -15,6 +15,7 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
     const [mouthExpr, setMouthExpr] = useState('aa')
     const [vrm, setVrm] = useState()
     const [clips, setClips] = useState()
+    const [nextBlinkTime, setNextBlinkTime] = useState(0);
 
     const bounding = useRef()
     const expressions = useControls({
@@ -73,6 +74,47 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
         }
     }, [speaking, vrm])
 
+    // load model
+    useEffect(() => {
+        console.log("loading model")
+        const loader = new GLTFLoader();
+        loader.crossOrigin = 'anonymous';
+    
+        loader.register((parser) => { return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true }); });
+
+        loader.load(getModelPath(assistant), (gltf) => {
+            const model = gltf.userData.vrm;
+            VRMUtils.removeUnnecessaryVertices( gltf.scene );
+            VRMUtils.removeUnnecessaryJoints( gltf.scene );
+            model.scene.traverse( ( obj ) => {
+                obj.frustumCulled = false;
+
+            } );
+            model.scene.name = "character"
+            // remove previously loaded model
+            scene.remove(scene.children.find(obj => obj.name === "character"))
+            scene.add(model.scene)
+            console.log(model)
+            setVrm(model)
+            setNextBlinkTime(getRandomBlinkTime(0));
+        })
+    }, [assistant, scene, setVrm])
+
+    // load mixer
+    useEffect(() => {
+        function loadFBX(vrm) {
+            // create AnimationMixer for VRM
+            const mixerio = new THREE.AnimationMixer(vrm.scene)
+            console.log("loading mixer...")
+            setMixer(mixerio)
+            console.log(mixerio)
+        }
+
+        if (vrm) {
+            loadFBX(vrm)
+        }
+    }, [vrm])
+
     // preload animations
     useEffect(() => {
         const loadAnimation = async () => {
@@ -101,20 +143,6 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
             loadAnimation()
         }
     }, [mixer, vrm])
-    // load mixer
-    useEffect(() => {
-        function loadFBX(vrm) {
-            // create AnimationMixer for VRM
-            const mixerio = new THREE.AnimationMixer(vrm.scene)
-            console.log("loading mixer...")
-            setMixer(mixerio)
-            console.log(mixerio)
-        }
-
-        if (vrm) {
-            loadFBX(vrm)
-        }
-    }, [vrm])
 
     // think
     useEffect(() => {
@@ -147,31 +175,6 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
         loadAnimation()
     }, [mixer, thinking, speaking, vrm, clips])
 
-    // load model
-    useEffect(() => {
-        console.log("loading model")
-        const loader = new GLTFLoader();
-        loader.crossOrigin = 'anonymous';
-    
-        loader.register((parser) => { return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true }); });
-
-        loader.load(getModelPath(assistant), (gltf) => {
-            const model = gltf.userData.vrm;
-            VRMUtils.removeUnnecessaryVertices( gltf.scene );
-            VRMUtils.removeUnnecessaryJoints( gltf.scene );
-            model.scene.traverse( ( obj ) => {
-                obj.frustumCulled = false;
-
-            } );
-            model.scene.name = "character"
-            // remove previously loaded model
-            scene.remove(scene.children.find(obj => obj.name === "character"))
-            scene.add(model.scene)
-            console.log(model)
-            setVrm(model)
-        })
-    }, [assistant, scene, setVrm])
-
     // talking animation
     useEffect(() => {
         const changeMouth = () => {
@@ -191,6 +194,30 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
         setTimeout(changeMouth, 600)
     }, [mouthExpr, setMouthExpr])
 
+    const getRandomBlinkTime = (currentTime) => {
+        return currentTime + Math.random() * (6 - 2) + 2; // Random time between 2 and 6 seconds from currentTime
+    };
+    
+    const handleBlink = (expressionManager, elapsedTime) => {
+        const blinkDuration = 0.1; // Duration of the blink closing or opening phase
+        const blinkStart = nextBlinkTime - blinkDuration;
+        const blinkEnd = nextBlinkTime + blinkDuration;
+    
+        if (elapsedTime >= blinkStart && elapsedTime <= nextBlinkTime) {
+          // Closing eyes smoothly
+          const blinkProgress = (elapsedTime - blinkStart) / blinkDuration;
+          expressionManager.setValue('blink', blinkProgress);
+        } else if (elapsedTime > nextBlinkTime && elapsedTime <= blinkEnd) {
+          // Opening eyes smoothly
+          const blinkProgress = 1 - ((elapsedTime - nextBlinkTime) / blinkDuration);
+          expressionManager.setValue('blink', blinkProgress);
+        } else if (elapsedTime > blinkEnd) {
+          // Blink complete, set new blink time
+          expressionManager.setValue('blink', 0);
+          setNextBlinkTime(getRandomBlinkTime(elapsedTime));
+        }
+    };
+
     // animate
     useFrame(({pointer, clock}, delta) => {
         const x = (pointer.x * viewport.width) / 2
@@ -202,7 +229,6 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
             lookAt.current.position.set(x, y, 0)
             vrm.lookAt.target = lookAt.current
 
-            const blinkSpeed = Math.sin( Math.PI * clock.elapsedTime * 2 );
             const mouthSpeed = Math.sin( Math.PI * clock.elapsedTime * 3.5 );
             
             // talk
@@ -223,7 +249,7 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
             const neck = vrm.humanoid.getNormalizedBoneNode('neck')
 
             // blink
-            vrm.expressionManager.setValue('blink', lerp(0, 1, blinkSpeed));
+            handleBlink(vrm.expressionManager, clock.elapsedTime)
             // control panel
             if (expressions.enableFaceControl) {
                 for (const expression in expressions) {
