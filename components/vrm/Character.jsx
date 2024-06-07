@@ -154,14 +154,13 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
     useEffect(() => {
         const loadAnimation = async () => {
             if (mixer && clips) {
-                console.log('playing animations')
                 if (thinking) {
                     console.log("thinking anim")
-                    mixer.clipAction(clips['talking'])?.fadeOut(1)
-                    mixer.clipAction(clips['idle'])?.fadeOut(1)
+                    mixer.clipAction(clips['talking'])?.fadeOut(0.5)
+                    mixer.clipAction(clips['idle'])?.fadeOut(0.5)
                     const thinkAction = mixer.clipAction(clips['think'])
                     thinkAction.clampWhenFinished = true
-                    thinkAction?.setLoop(THREE.LoopOnce).reset().play().fadeIn(1);
+                    thinkAction?.setLoop(THREE.LoopOnce).reset().play().fadeIn(0.5);
                 } else if (speaking) {
                     console.log("speaking")
                     // Load animation
@@ -169,12 +168,12 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
                     mixer.clipAction(clips['think'])?.fadeOut(1)
                     mixer.clipAction(clips['idle'])?.fadeOut(1)
 
-                    mixer.clipAction(clips['talking'])?.reset().play().fadeIn(1);
+                    mixer.clipAction(clips['talking'])?.reset().play().fadeIn(0.5);
                 } else {
                     console.log("speak/think back to Idle")
                     mixer.clipAction(clips['talking'])?.fadeOut(1)
                     mixer.clipAction(clips['think'])?.fadeOut(1)
-                    mixer.clipAction(clips['idle'])?.reset().play().fadeIn(1);
+                    mixer.clipAction(clips['idle'])?.reset().play().fadeIn(0.5);
                 }
             }
 
