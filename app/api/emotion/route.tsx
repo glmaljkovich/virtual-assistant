@@ -22,15 +22,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const message = body.message ?? "I'm mega sad, waaa";
-    const TEMPLATE = `You detect emotion in the input text and return only one of the following words:
-    [happy, sad, relaxed, surprised, angry]
+    const TEMPLATE = `You detect what's the appropiate emotion to reply to the user prompt and return only one of the following words:
+    [happy, sad, angry, relaxed, surprised]
+
+    That's also the order of preference for when to choose one over the other if more than one emotion might fit. Avoid choosing surprised when there are other options
 
     Example:
-    - Input: "Haha! You got me."
+    - User: "You sly fox! You keep getting away with it! I can't say no to that smile."
     - AI: happy
     ----
  
-    - Input: {input}
+    - User: {input}
     - AI:`;
     const prompt = PromptTemplate.fromTemplate(TEMPLATE);
 

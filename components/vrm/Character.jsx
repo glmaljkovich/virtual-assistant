@@ -55,8 +55,15 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
             "surprised",
             "relaxed"
         ]
+        const emotionStrength = {
+            happy: 0.5,
+            sad: 1,
+            angry: 0.75,
+            surprised: 0.75,
+            relaxed: 1
+        }
         if(emotion !== ""){
-            vrm?.expressionManager.setValue(emotion, 0.5)
+            vrm?.expressionManager.setValue(emotion, emotionStrength[emotion])
         } else {
             for (const emot of emotions) {
                 vrm?.expressionManager.setValue(emot, 0)
@@ -162,9 +169,10 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
                     mixer.clipAction(clips['think'])?.stop()
                     mixer.clipAction(clips['idle'])?.stop()
                     mixer.clipAction(clips['talking'])?.play();
+                    mixer.clipAction(clips['talking'])?.fadeIn(1);
                 } else {
                     console.log("speak/think back to Idle")
-                    mixer.clipAction(clips['talking'])?.stop()
+                    mixer.clipAction(clips['talking'])?.fadeOut(1)
                     mixer.clipAction(clips['think'])?.stop()
                     mixer.clipAction(clips['idle'])?.play();
                 }

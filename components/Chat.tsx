@@ -8,6 +8,7 @@ import {
   Dispatch,
   FormEvent,
   SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -23,6 +24,21 @@ type ChatProps = {
   setEmotion: (emotion: string) => void;
 };
 
+interface ElevenLabsWSResponse {
+  audio: string;
+  isFinal: boolean;
+  normalizedAlignment: {
+    char_start_times_ms: number[];
+    chars_durations_ms: number[];
+    chars: string[];
+  };
+  alignment: {
+    char_start_times_ms: number[];
+    chars_durations_ms: number[];
+    chars: string[];
+  };
+}
+
 export default function Chat({
   setText,
   setThinking,
@@ -32,6 +48,13 @@ export default function Chat({
   const player = useRef<HTMLAudioElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [recording, setRecording] = useState(false);
+  const [audioQueue, setAudioQueue] = useState<string[]>([]);
+  const isPlayingRef = useRef<boolean>(false);
+  const [isFetchingAudio, setFetchingAudio] = useState(false)
+  const messagesEndRef = useRef<null | HTMLLIElement>(null);
+  const lastSentIndexRef = useRef<number>(0);
+  const [wordsToSpeak, setWordsToSpeak] = useState<string[]>([])
+  const [isStreaming, setStreaming] = useState(false)
 
   const {
     messages,
@@ -46,26 +69,18 @@ export default function Chat({
       agentName: agentName,
     },
     onFinish: async (message) => {
-      const emotionResponse = await fetch("/api/emotion", {
-        method: "POST",
-        body: JSON.stringify({ message: message.content }),
-      });
-      const emotion = await emotionResponse.text();
-      const audio = await getElevenLabsResponse(message.content);
-      setEmotion(emotion);
-      const reader = new FileReader();
-      setThinking(false);
-      reader.readAsDataURL(audio);
-      reader.onload = () => {
-        if (player.current) {
-          player.current.src = reader.result as string;
-          player.current.play();
-          setText(message.content);
-        }
-      };
+      setStreaming(false)
     },
+    onResponse: async (res) => {
+      setStreaming(true)
+    }
   });
-  const messagesEndRef = useRef<null | HTMLLIElement>(null);
+
+  const finishSpeaking = useCallback(() => {
+    console.log("finish speaking")
+    setText("");
+    setEmotion("");
+  }, [setEmotion, setText]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -75,31 +90,114 @@ export default function Chat({
     scrollToBottom();
   }, [messages]);
 
-  const getElevenLabsResponse = async (text: string) => {
-    const response = await fetch("/api/tts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: text,
-        assistant: agentName,
-      }),
-    });
 
-    if (response.status === 401) {
-      console.log(
-        "Your ElevenLabs API Key is invalid. Kindly check and try again.",
-        {
-          type: "error",
-          autoClose: 5000,
+  useEffect(() => {
+
+    const getElevenLabsResponse = async (text: string, previous: string) => {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
-    }
+        body: JSON.stringify({
+          text: text,
+          assistant: agentName,
+          previous: previous
+        }),
+      });
+  
+      if (response.status === 401) {
+        console.log(
+          "Your ElevenLabs API Key is invalid. Kindly check and try again.",
+          {
+            type: "error",
+            autoClose: 5000,
+          },
+        );
+      }
+  
+      const data = await response.blob();
+      return data;
+    };
 
-    const data = await response.blob();
-    return data;
-  };
+    const getAudio = async (content: string) => {
+        const previous = content.substring(0, lastSentIndexRef.current)
+        setFetchingAudio(true)
+        const audio = await getElevenLabsResponse(content, previous);
+        setFetchingAudio(false)
+        const reader = new FileReader();
+        reader.onload = () => {
+          setAudioQueue((prevQueue) => [...prevQueue, reader.result as string]);
+          setText(content);
+        };
+        reader.readAsDataURL(audio);
+        console.log(content, lastSentIndexRef.current)
+      }
+
+    if (!isFetchingAudio && wordsToSpeak.length !== 0) {
+      getAudio(wordsToSpeak[0])
+      setWordsToSpeak(wordsToSpeak.slice(1))
+    } else if (!isStreaming && !isFetchingAudio && !isPlayingRef.current && wordsToSpeak.length === 0) {
+      finishSpeaking()
+    }
+  }, [isFetchingAudio, wordsToSpeak, agentName, setText, finishSpeaking, isStreaming])
+
+  useEffect(() => {
+    const latestMessage = messages[messages.length - 1];
+    const fetchEmotion = async (content: string) => {
+      const emotionResponse = await fetch("/api/emotion", {
+        method: "POST",
+        body: JSON.stringify({ message: content }),
+      });
+      const emotion = await emotionResponse.text();
+      console.log("setting emotion", emotion)
+      setEmotion(emotion);
+    }
+    const isCompleteWord = (word: string): boolean => {
+      return /[.,!?;:]+$/.test(word);  // Check if the word ends with a space or punctuation.
+    };
+
+    if (latestMessage && latestMessage.role !== 'user') {
+      setThinking(false)
+      const content = latestMessage.content
+      if (isCompleteWord(content)) {
+        const newEnding = content.length
+        const newWords = content.substring(lastSentIndexRef.current)
+        if (newWords.length > 0) {
+          lastSentIndexRef.current = newEnding
+          setWordsToSpeak((words) => [...words, newWords])
+        }
+      }
+    } else if (latestMessage && latestMessage.role === 'user') {
+      lastSentIndexRef.current = 0
+      fetchEmotion(latestMessage.content)
+    }
+  }, [messages, agentName, setEmotion, setThinking, setText]);
+  
+
+  useEffect(() => {
+    const playNextAudio = () => {
+      if (!player.current) return;
+  
+      isPlayingRef.current = true;
+      const nextAudioData = audioQueue[0];
+      player.current.src = nextAudioData;
+      player.current.play().then(() => {
+        player.current!.onended = () => {
+          setAudioQueue((prevQueue) => prevQueue.slice(1));
+          isPlayingRef.current = false;
+        };
+      }).catch((error) => {
+        console.error('Error playing audio:', error);
+        isPlayingRef.current = false;
+      });
+    };
+    if (audioQueue.length > 0 && !isPlayingRef.current) {
+      playNextAudio();
+    } else if (audioQueue.length === 0 && wordsToSpeak.length === 0){
+      finishSpeaking()
+    }
+  }, [audioQueue, finishSpeaking, wordsToSpeak.length]);
 
   const handlePrompt = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -107,6 +205,7 @@ export default function Chat({
       return;
     }
     setThinking(true);
+    setStreaming(true)
     const playThinkingSound = async () => {
       const reader = new FileReader();
       const voiceMap = new Map(
@@ -126,11 +225,6 @@ export default function Chat({
     };
     playThinkingSound();
     handleSubmit(e);
-  };
-
-  const finishSpeaking = () => {
-    setText("");
-    setEmotion("");
   };
 
   useEffect(() => {
@@ -189,7 +283,7 @@ export default function Chat({
       </ul>
 
       <form className="flex gap-4 w-full" onSubmit={handlePrompt}>
-        <audio ref={player} onEnded={finishSpeaking} />
+        <audio ref={player} />
         <span
           className={classnames(
             [

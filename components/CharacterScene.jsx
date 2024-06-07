@@ -142,7 +142,7 @@ export default function CharacterScene() {
   }
 
   return (
-    <div className="h-dvh w-full">
+    <div className="h-svh w-full">
       <div className="absolute top-0 z-10 left-0 text-center">
         <div className=" text-xl mt-2 ml-2 w-auto z-10 uppercase tracking-wider font-bold text-white px-4 rounded-3xl bg-slate-800">
           {assistant.substring(0, assistant.length -2)}<span className="text-teal-400">{assistant.substring(assistant.length - 2)}</span>

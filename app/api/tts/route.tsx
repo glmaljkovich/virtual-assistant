@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ElevenLabsClient, play } from "elevenlabs";
 
 export async function POST(req: NextRequest) {
-    const body = await req.json()
+    const {assistant, text, previous} = await req.json()
     const elevenlabs = new ElevenLabsClient()
     const austinVoice = "Xb3zeLrTi6F4ziIcXdwk"
     const astridVoice = "Qdi0R9qF3aZ4OQvNyxyM"
@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
       'Amelia': astridVoice
     }))
     const audio = await elevenlabs.generate({
-      voice: assistantVoices.get(body.assistant),
-      text: body.text,
+      voice: assistantVoices.get(assistant),
+      text: text,
       model_id: "eleven_turbo_v2",
       optimize_streaming_latency: "1",
       voice_settings: {
