@@ -32,7 +32,7 @@ function Effects() {
     return (
         <EffectComposer multisampling={4}>
         <DepthOfField focusDistance={0} focalLength={0.1} bokehScale={2} height={480} />
-        <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
+        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} />
         </EffectComposer>
     )
 }
@@ -177,7 +177,7 @@ export default function CharacterScene() {
           <Skybox />
           <Effects />
           <TopLight />
-          <ambientLight intensity={1} />
+          <ambientLight intensity={0.9} />
           {debug && <Ground /> }
           <Character
             lookAt={lookAt}

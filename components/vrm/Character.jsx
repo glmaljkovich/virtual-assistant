@@ -157,24 +157,24 @@ export const Character = function Character({ lookAt, text, thinking, assistant,
                 console.log('playing animations')
                 if (thinking) {
                     console.log("thinking anim")
-                    mixer.clipAction(clips['talking'])?.stop()
-                    mixer.clipAction(clips['idle'])?.stop()
+                    mixer.clipAction(clips['talking'])?.fadeOut(1)
+                    mixer.clipAction(clips['idle'])?.fadeOut(1)
                     const thinkAction = mixer.clipAction(clips['think'])
                     thinkAction.clampWhenFinished = true
-                    thinkAction?.setLoop(THREE.LoopOnce).play();
+                    thinkAction?.setLoop(THREE.LoopOnce).reset().play().fadeIn(1);
                 } else if (speaking) {
                     console.log("speaking")
                     // Load animation
                     // Apply the loaded animation to mixer and play
-                    mixer.clipAction(clips['think'])?.stop()
-                    mixer.clipAction(clips['idle'])?.stop()
-                    mixer.clipAction(clips['talking'])?.play();
-                    mixer.clipAction(clips['talking'])?.fadeIn(1);
+                    mixer.clipAction(clips['think'])?.fadeOut(1)
+                    mixer.clipAction(clips['idle'])?.fadeOut(1)
+
+                    mixer.clipAction(clips['talking'])?.reset().play().fadeIn(1);
                 } else {
                     console.log("speak/think back to Idle")
                     mixer.clipAction(clips['talking'])?.fadeOut(1)
-                    mixer.clipAction(clips['think'])?.stop()
-                    mixer.clipAction(clips['idle'])?.play();
+                    mixer.clipAction(clips['think'])?.fadeOut(1)
+                    mixer.clipAction(clips['idle'])?.reset().play().fadeIn(1);
                 }
             }
 
