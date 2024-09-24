@@ -19,6 +19,12 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## API Keys
+You'll need to create a `.env.local` file and add the following env variables:
+```
+// TODO
+```
+
 ## Project Structure
 ### API endpoints
 ```
@@ -35,7 +41,11 @@ question and get an emotion name to use for animating the avatar
 
 ## Scene
 
-The avatars are sourced from VRoid Studio since they can be animated via Adobe Mixamo and they include a controller for facial features.
+All the setup of the 3d scene is done at:
+```
+components/CharacterScene.tsx
+```
 
+The avatars are sourced from VRoid Studio since they can be animated via Adobe Mixamo and they include a controller for facial features.
 
 
